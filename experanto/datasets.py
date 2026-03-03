@@ -665,6 +665,17 @@ class ChunkDataset(Dataset):
                     final_out[key] = out[key].contiguous()
                 else:
                     final_out[key] = out[key]
+        
+        # Fühlt sich komisch an, dass so zu machen. Frage ob es eine bessere lösung gibt
+        if "image_id" in self.out_keys:
+            trial_idx = np.searchsorted(self._start_times, s, side="right") - 1
+            trial_idx = int(np.clip(trial_idx, 0, len(self._trials) - 1))
+            trial = self._trials[trial_idx]
+            #print("idx: ", idx)
+            img_id = trial.get_meta("image_id")
+            # Ensure it's numeric; otherwise cast or map elsewhere
+            final_out["image_id"] = torch.tensor(int(img_id), dtype=torch.int64)
+            final_out["trial_idx"] = torch.tensor(int(trial_idx), dtype=torch.int64)
 
         return final_out
 
